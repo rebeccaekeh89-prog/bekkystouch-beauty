@@ -63,8 +63,8 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
+          "apikey": process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""}`,
         },
         body: JSON.stringify({
           email: newsletterEmail,
