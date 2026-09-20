@@ -11,8 +11,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Save subscriber to Supabase (Fixed URL typo)
-    const supabaseResponse = await fetch(
+    // Save subscriber directly to Supabase
+    const response = await fetch(
       "https://ttdxwrzbvievwkiozpgl.supabase.co/rest/v1/newsletter_subscribers",
       {
         method: "POST",
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       }
     );
 
-    if (!supabaseResponse.ok) {
-      const errorText = await supabaseResponse.text();
+    if (!response.ok) {
+      const errorText = await response.text();
       console.error("Supabase error:", errorText);
 
       return NextResponse.json(
@@ -41,51 +41,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Send welcome email through Resend safely
-    let emailSent = false;
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Bekky's Touch <onboarding@resend.dev>",
-            to: [email],
-            subject: "Welcome to Bekky's Touch – Here's 10% Off 💕",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px;">
-                <h1>Welcome to Bekky's Touch 💕</h1>
-                <p>Thank you for joining our beauty community.</p>
-                <p>As a welcome gift, enjoy <strong>10% off</strong> your order.</p>
-                <div style="padding: 20px; background: #f8eeee; text-align: center; margin: 25px 0;">
-                  <p style="margin: 0;">YOUR DISCOUNT CODE</p>
-                  <h2 style="letter-spacing: 3px;">WELCOME10</h2>
-                </div>
-                <p>Enter <strong>WELCOME10</strong> at checkout to receive your discount.</p>
-                <p>With love,<br><strong>Bekky's Touch</strong></p>
-              </div>
-            `,
-          }),
-        });
-
-        if (emailResponse.ok) {
-          emailSent = true;
-        } else {
-          const emailError = await emailResponse.text();
-          console.error("Resend delivery notice:", emailError);
-        }
-      } catch (err) {
-        console.error("Resend dispatch error:", err);
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      emailSent,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Newsletter API error:", error);
 
