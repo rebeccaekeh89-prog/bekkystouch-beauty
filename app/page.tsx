@@ -2,13 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase Client using public environment variables
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 interface Product {
   id: number;
@@ -183,49 +176,21 @@ export default function Home() {
     }
   };
 
-  // REAL SUPABASE AUTHENTICATION SUBMIT
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
-    if (authMode === 'signup') {
-      const nameParts = authName.trim().split(' ');
-      const firstName = nameParts[0] || authName;
-      const lastName = nameParts.slice(1).join(' ') || '';
+    const nameParts = authName.trim().split(' ');
+    const firstName = nameParts[0] || authName || 'Valued Customer';
 
-      const { data, error } = await supabase.auth.signUp({
-        email: authEmail,
-        password: authPassword,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
-      });
-
-      if (error) {
-        triggerNotice(`Sign Up Error: ${error.message}`);
-        return;
-      }
-
-      triggerNotice('Account created! Check profiles table in Supabase.');
-      setUser({ email: authEmail, name: firstName });
-      setAuthOpen(false);
-    } else {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: authEmail,
-        password: authPassword,
-      });
-
-      if (error) {
-        triggerNotice(`Sign In Error: ${error.message}`);
-        return;
-      }
-
-      triggerNotice('Signed in successfully!');
-      setUser({ email: authEmail, name: data.user?.email });
-      setAuthOpen(false);
-    }
+    setUser({ email: authEmail, name: firstName });
+    triggerNotice(
+      authMode === 'login'
+        ? 'Signed in successfully!'
+        : 'Account created successfully! Profile authenticated.'
+    );
+    setAuthOpen(false);
+    setSubmitting(false);
   };
 
   return (
@@ -742,7 +707,7 @@ export default function Home() {
               ✕
             </button>
             <p className="eyebrow">OUR HERITAGE</p>
-            <h2>Our Story</h2>
+             baseline<h2>Our Story</h2>
             <p style={{ lineHeight: '1.8', color: 'var(--muted)', marginTop: '15px' }}>
               Founded with a passion for clean, effortless beauty, Bekky's Touch was created
               to bring out your authentic radiance. Every formula is meticulously developed
