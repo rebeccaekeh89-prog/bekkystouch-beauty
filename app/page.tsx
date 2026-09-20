@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Product = { id: number; name: string; category: string; price: number; shade: string; image: string; badge?: string };
+
 const fallbackProducts: Product[] = [
   { id: 1, name: "Second Skin Foundation", category: "Face", price: 28, shade: "18 inclusive shades", badge: "Bestseller", image: "https://images.unsplash.com/photo-1631214540242-7b89d70be148?auto=format&fit=crop&w=800&q=85" },
   { id: 2, name: "Cloud Blush", category: "Face", price: 18, shade: "Rose Muse", image: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=800&q=85" },
@@ -17,6 +18,7 @@ const fallbackProducts: Product[] = [
   { id: 11, name: "Glass Lip Oil", category: "Lips", price: 17, shade: "Honey Nude", image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=85" },
   { id: 12, name: "Flawless Finish Brush", category: "Tools", price: 22, shade: "Vegan fibres", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=85" },
 ];
+
 const categories = ["All", "Face", "Eyes", "Brows", "Lips", "Tools"];
 
 export default function Home() {
@@ -54,39 +56,47 @@ export default function Home() {
   }, []);
 
   async function subscribeNewsletter(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+    event.preventDefault();
 
-  try {
-    const response = await fetch(
-      "https://ttdxwrzbvievwkiozpgl.supabase.co/rest/v1/newsletter_subscribers",
-      {
+    try {
+      const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""}`,
         },
-        body: JSON.stringify({
-          email: newsletterEmail,
-          status: "subscribed",
-        }),
+        body: JSON.stringify({ email: newsletterEmail }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Newsletter signup failed");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Newsletter signup failed");
+      setNotice("Welcome to the Bekkystouch inner circle!");
+      setNewsletterEmail("");
+    } catch {
+      setNotice("Sorry, we couldn't subscribe you. Please try again.");
     }
-
-    setNotice("Welcome to the Bekkystouch inner circle!");
-    setNewsletterEmail("");
-  } catch {
-    setNotice("Sorry, we couldn't subscribe you. Please try again.");
   }
-}  const filtered = products.filter((p) => (category === "All" || p.category === category) && p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const filtered = products.filter((p) => (category === "All" || p.category === category) && p.name.toLowerCase().includes(search.toLowerCase()));
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
   const subtotal = useMemo(() => products.reduce((sum, p) => sum + p.price * (cart[p.id] || 0), 0), [cart]);
-  function add(product: Product) { setCart((c) => ({ ...c, [product.id]: (c[product.id] || 0) + 1 })); setNotice(`${product.name} added to your bag`); setTimeout(() => setNotice(""), 2200); }
-  function update(id: number, delta: number) { setCart((c) => { const next = Math.max(0, (c[id] || 0) + delta); const copy = { ...c, [id]: next }; if (!next) delete copy[id]; return copy; }); }
+
+  function add(product: Product) {
+    setCart((c) => ({ ...c, [product.id]: (c[product.id] || 0) + 1 }));
+    setNotice(`${product.name} added to your bag`);
+    setTimeout(() => setNotice(""), 2200);
+  }
+
+  function update(id: number, delta: number) {
+    setCart((c) => {
+      const next = Math.max(0, (c[id] || 0) + delta);
+      const copy = { ...c, [id]: next };
+      if (!next) delete copy[id];
+      return copy;
+    });
+  }
+
   async function placeOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -112,29 +122,186 @@ export default function Home() {
     }
   }
 
-  return <main>
-    <div className="announcement">Complimentary UK delivery on every order</div>
-    <header>
-      <a className="brand" href="#top" aria-label="Bekkystouch home">BEKKY<span>STOUCH</span></a>
-      <nav aria-label="Main navigation"><a href="#shop">Shop</a><a href="#story">Our story</a><a href="#newsletter">Beauty notes</a></nav>
-      <div className="header-actions"><button className="icon-btn" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">⌕</button><button className="bag-btn" onClick={() => setCartOpen(true)} aria-label={`Shopping bag with ${count} items`}>Bag <span>{count}</span></button></div>
-      {searchOpen && <div className="search-wrap"><input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your beauty essentials…" aria-label="Search products" /><button onClick={() => {setSearch("");setSearchOpen(false)}}>Close</button></div>}
-    </header>
-    <section className="hero" id="top">
-      <div className="hero-copy"><p className="eyebrow">MAKEUP THAT MEETS YOU</p><h1>Your beauty.<br/><em>Your way.</em></h1><p>Thoughtfully made colour, effortless formulas and shades designed to celebrate every complexion.</p><a className="primary" href="#shop">Shop the collection <span>→</span></a><div className="proof"><span>★★★★★</span> Loved by 2,000+ beauty lovers</div></div>
-      <div className="hero-visual" role="img" aria-label="Luxury makeup products on a warm neutral background"><img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1400&q=90" alt="A curated collection of luxury makeup products" /><div className="hero-card"><span>NEW</span><strong>The Golden Hour Edit</strong><small>Glow from every angle</small></div></div>
-    </section>
-    <section className="shop" id="shop">
-      <div className="section-heading"><div><p className="eyebrow">CURATED FOR YOU</p><h2>Find your essentials</h2></div><p>High-performance makeup that feels as good as it looks.{catalogueStatus === "loading" && <span className="catalogue-note"> Updating…</span>}</p></div>
-      <div className="filters" role="tablist" aria-label="Product categories">{categories.map((c) => <button key={c} className={category === c ? "active" : ""} onClick={() => setCategory(c)} role="tab" aria-selected={category === c}>{c}</button>)}</div>
-      <div className="product-grid">{filtered.map((p) => <article className="product" key={p.id}><div className="product-image"><img src={p.image} alt={p.name} loading="lazy" />{p.badge && <span className="badge">{p.badge}</span>}<button className="quick-add" onClick={() => add(p)}>Quick add</button></div><div className="product-info"><p className="category">{p.category}</p><h3>{p.name}</h3><p className="shade">{p.shade}</p><div><strong>£{p.price.toFixed(2)}</strong><button onClick={() => add(p)} aria-label={`Add ${p.name} to bag`}>＋</button></div></div></article>)}</div>
-      {!filtered.length && <div className="empty">No products found. Try another search.</div>}
-    </section>
-    <section className="values" id="story"><div><span>◇</span><h3>Made for every shade</h3><p>Flexible formulas created to flatter a beautiful spectrum of skin tones.</p></div><div><span>♧</span><h3>Consciously crafted</h3><p>Vegan-friendly, cruelty-free essentials with considered packaging.</p></div><div><span>✦</span><h3>Beauty made simple</h3><p>Easy-to-use products that earn their place in your everyday routine.</p></div></section>
-    <section className="newsletter" id="newsletter"><div><p className="eyebrow">JOIN THE INNER CIRCLE</p><h2>A little beauty in your inbox</h2><p>Get 10% off your first order, plus product drops, tips and exclusive offers.</p></div><form onSubmit={subscribeNewsletter}><input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="Your email address" aria-label="Email address"/><button>Get 10% off</button></form></section>
-    <footer><a className="brand" href="#top">BEKKY<span>STOUCH</span></a><p>Beauty that feels like you.</p><div><a href="#shop">Shop</a><a href="#story">About</a><a href="#newsletter">Contact</a></div><small>© 2026 Bekkystouch. All rights reserved.</small></footer>
-    {notice && <div className="toast" role="status">✓ {notice}</div>}
-    {cartOpen && <><div className="backdrop" onClick={() => setCartOpen(false)} /><aside className="cart" aria-label="Shopping bag"><div className="cart-head"><div><p className="eyebrow">YOUR SELECTION</p><h2>Shopping bag ({count})</h2></div><button onClick={() => setCartOpen(false)} aria-label="Close bag">×</button></div>{count === 0 ? <div className="cart-empty"><span>◇</span><h3>Your bag is waiting</h3><p>Discover something beautiful to add.</p><button className="primary" onClick={() => setCartOpen(false)}>Start shopping</button></div> : <><div className="delivery"><p>Free UK delivery included</p><div><i style={{width: "100%"}} /></div></div><div className="cart-items">{products.filter(p => cart[p.id]).map(p => <div className="cart-item" key={p.id}><img src={p.image} alt=""/><div><h3>{p.name}</h3><p>{p.shade}</p><div className="qty"><button onClick={() => update(p.id,-1)}>−</button><span>{cart[p.id]}</span><button onClick={() => update(p.id,1)}>＋</button></div></div><strong>£{(p.price*cart[p.id]).toFixed(2)}</strong></div>)}</div><div className="cart-total"><div><span>Total</span><strong>£{subtotal.toFixed(2)}</strong></div><p>Free UK delivery</p><button className="checkout" onClick={() => {setCartOpen(false);setCheckoutOpen(true)}}>Continue to demo checkout <span>→</span></button><small>Your demonstration order is stored in Supabase.</small></div></>}</aside></>}
-    {checkoutOpen && <><div className="backdrop" onClick={() => !submitting && setCheckoutOpen(false)} /><section className="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title"><button className="modal-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout">×</button>{orderNumber ? <div className="order-success"><span>✓</span><p className="eyebrow">DEMO PAYMENT SUCCESSFUL</p><h2 id="checkout-title">Thank you for your order</h2><p>Your demonstration order has been saved in Supabase. No money was charged.</p><div><small>Order reference</small><strong>{orderNumber.slice(0, 8).toUpperCase()}</strong></div><button className="checkout" onClick={() => {setCheckoutOpen(false);setOrderNumber("")}}>Continue shopping</button></div> : <><p className="eyebrow">PROJECT DEMO CHECKOUT</p><h2 id="checkout-title">Complete your order</h2><div className="demo-banner">Demo only — no real payment or card details are collected.</div><div className="checkout-summary"><span>{count} {count === 1 ? "item" : "items"} · Free delivery</span><strong>£{subtotal.toFixed(2)}</strong></div><form className="checkout-form" onSubmit={placeOrder}><label>Full name<input required autoComplete="name" value={customer.customer_name} onChange={(e) => setCustomer({...customer, customer_name: e.target.value})}/></label><label>Email address<input required type="email" autoComplete="email" value={customer.email} onChange={(e) => setCustomer({...customer, email: e.target.value})}/></label><label>Phone number <small>(optional)</small><input type="tel" autoComplete="tel" value={customer.phone} onChange={(e) => setCustomer({...customer, phone: e.target.value})}/></label><label className="wide">Delivery address<input required autoComplete="street-address" value={customer.address} onChange={(e) => setCustomer({...customer, address: e.target.value})}/></label><label>Town or city<input required autoComplete="address-level2" value={customer.city} onChange={(e) => setCustomer({...customer, city: e.target.value})}/></label><label>Postcode<input required autoComplete="postal-code" value={customer.postcode} onChange={(e) => setCustomer({...customer, postcode: e.target.value})}/></label><fieldset className="payment-methods wide"><legend>Demo payment method</legend>{["Card", "Apple Pay", "PayPal"].map((method) => <label key={method} className={paymentMethod === method ? "selected" : ""}><input type="radio" name="payment-method" value={method} checked={paymentMethod === method} onChange={() => setPaymentMethod(method)}/><span>{method}</span></label>)}</fieldset>{checkoutError && <p className="checkout-error" role="alert">{checkoutError}</p>}<button className="checkout wide" disabled={submitting}>{submitting ? "Processing demo payment…" : `Pay £${subtotal.toFixed(2)} (demo)`}</button><p className="payment-note wide">This simulates a successful online payment for demonstration purposes only.</p></form></>}</section></>}
-  </main>;
+  return (
+    <main>
+      <div className="announcement">Complimentary UK delivery on every order</div>
+      <header>
+        <a className="brand" href="#top" aria-label="Bekkystouch home">BEKKY<span>STOUCH</span></a>
+        <nav aria-label="Main navigation"><a href="#shop">Shop</a><a href="#story">Our story</a><a href="#newsletter">Beauty notes</a></nav>
+        <div className="header-actions">
+          <button className="icon-btn" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">⌕</button>
+          <button className="bag-btn" onClick={() => setCartOpen(true)} aria-label={`Shopping bag with ${count} items`}>Bag <span>{count}</span></button>
+        </div>
+        {searchOpen && (
+          <div className="search-wrap">
+            <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your beauty essentials…" aria-label="Search products" />
+            <button onClick={() => { setSearch(""); setSearchOpen(false); }}>Close</button>
+          </div>
+        )}
+      </header>
+
+      <section className="hero" id="top">
+        <div className="hero-copy">
+          <p className="eyebrow">MAKEUP THAT MEETS YOU</p>
+          <h1>Your beauty.<br/><em>Your way.</em></h1>
+          <p>Thoughtfully made colour, effortless formulas and shades designed to celebrate every complexion.</p>
+          <a className="primary" href="#shop">Shop the collection <span>→</span></a>
+          <div className="proof"><span>★★★★★</span> Loved by 2,000+ beauty lovers</div>
+        </div>
+        <div className="hero-visual" role="img" aria-label="Luxury makeup products on a warm neutral background">
+          <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1400&q=90" alt="A curated collection of luxury makeup products" />
+          <div className="hero-card"><span>NEW</span><strong>The Golden Hour Edit</strong><small>Glow from every angle</small></div>
+        </div>
+      </section>
+
+      <section className="shop" id="shop">
+        <div className="section-heading">
+          <div><p className="eyebrow">CURATED FOR YOU</p><h2>Find your essentials</h2></div>
+          <p>High-performance makeup that feels as good as it looks.{catalogueStatus === "loading" && <span className="catalogue-note"> Updating…</span>}</p>
+        </div>
+        <div className="filters" role="tablist" aria-label="Product categories">
+          {categories.map((c) => (
+            <button key={c} className={category === c ? "active" : ""} onClick={() => setCategory(c)} role="tab" aria-selected={category === c}>{c}</button>
+          ))}
+        </div>
+        <div className="product-grid">
+          {filtered.map((p) => (
+            <article className="product" key={p.id}>
+              <div className="product-image">
+                <img src={p.image} alt={p.name} loading="lazy" />
+                {p.badge && <span className="badge">{p.badge}</span>}
+                <button className="quick-add" onClick={() => add(p)}>Quick add</button>
+              </div>
+              <div className="product-info">
+                <p className="category">{p.category}</p>
+                <h3>{p.name}</h3>
+                <p className="shade">{p.shade}</p>
+                <div>
+                  <strong>£{p.price.toFixed(2)}</strong>
+                  <button onClick={() => add(p)} aria-label={`Add ${p.name} to bag`}>＋</button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        {!filtered.length && <div className="empty">No products found. Try another search.</div>}
+      </section>
+
+      <section className="values" id="story">
+        <div><span>◇</span><h3>Made for every shade</h3><p>Flexible formulas created to flatter a beautiful spectrum of skin tones.</p></div>
+        <div><span>♧</span><h3>Consciously crafted</h3><p>Vegan-friendly, cruelty-free essentials with considered packaging.</p></div>
+        <div><span>✦</span><h3>Beauty made simple</h3><p>Easy-to-use products that earn their place in your everyday routine.</p></div>
+      </section>
+
+      <section className="newsletter" id="newsletter">
+        <div>
+          <p className="eyebrow">JOIN THE INNER CIRCLE</p>
+          <h2>A little beauty in your inbox</h2>
+          <p>Get 10% off your first order, plus product drops, tips and exclusive offers.</p>
+        </div>
+        <form onSubmit={subscribeNewsletter}>
+          <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="Your email address" aria-label="Email address"/>
+          <button>Get 10% off</button>
+        </form>
+      </section>
+
+      <footer>
+        <a className="brand" href="#top">BEKKY<span>STOUCH</span></a>
+        <p>Beauty that feels like you.</p>
+        <div><a href="#shop">Shop</a><a href="#story">About</a><a href="#newsletter">Contact</a></div>
+        <small>© 2026 Bekkystouch. All rights reserved.</small>
+      </footer>
+
+      {notice && <div className="toast" role="status">✓ {notice}</div>}
+
+      {cartOpen && (
+        <>
+          <div className="backdrop" onClick={() => setCartOpen(false)} />
+          <aside className="cart" aria-label="Shopping bag">
+            <div className="cart-head">
+              <div><p className="eyebrow">YOUR SELECTION</p><h2>Shopping bag ({count})</h2></div>
+              <button onClick={() => setCartOpen(false)} aria-label="Close bag">×</button>
+            </div>
+            {count === 0 ? (
+              <div className="cart-empty">
+                <span>◇</span><h3>Your bag is waiting</h3><p>Discover something beautiful to add.</p>
+                <button className="primary" onClick={() => setCartOpen(false)}>Start shopping</button>
+              </div>
+            ) : (
+              <>
+                <div className="delivery"><p>Free UK delivery included</p><div><i style={{ width: "100%" }} /></div></div>
+                <div className="cart-items">
+                  {products.filter((p) => cart[p.id]).map((p) => (
+                    <div className="cart-item" key={p.id}>
+                      <img src={p.image} alt=""/>
+                      <div>
+                        <h3>{p.name}</h3><p>{p.shade}</p>
+                        <div className="qty">
+                          <button onClick={() => update(p.id, -1)}>−</button>
+                          <span>{cart[p.id]}</span>
+                          <button onClick={() => update(p.id, 1)}>＋</button>
+                        </div>
+                      </div>
+                      <strong>£{(p.price * cart[p.id]).toFixed(2)}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="cart-total">
+                  <div><span>Total</span><strong>£{subtotal.toFixed(2)}</strong></div>
+                  <p>Free UK delivery</p>
+                  <button className="checkout" onClick={() => { setCartOpen(false); setCheckoutOpen(true); }}>Continue to demo checkout <span>→</span></button>
+                  <small>Your demonstration order is stored in Supabase.</small>
+                </div>
+              </>
+            )}
+          </aside>
+        </>
+      )}
+
+      {checkoutOpen && (
+        <>
+          <div className="backdrop" onClick={() => !submitting && setCheckoutOpen(false)} />
+          <section className="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+            <button className="modal-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout">×</button>
+            {orderNumber ? (
+              <div className="order-success">
+                <span>✓</span><p className="eyebrow">DEMO PAYMENT SUCCESSFUL</p>
+                <h2 id="checkout-title">Thank you for your order</h2>
+                <p>Your demonstration order has been saved in Supabase. No money was charged.</p>
+                <div><small>Order reference</small><strong>{orderNumber.slice(0, 8).toUpperCase()}</strong></div>
+                <button className="checkout" onClick={() => { setCheckoutOpen(false); setOrderNumber(""); }}>Continue shopping</button>
+              </div>
+            ) : (
+              <>
+                <p className="eyebrow">PROJECT DEMO CHECKOUT</p>
+                <h2 id="checkout-title">Complete your order</h2>
+                <div className="demo-banner">Demo only — no real payment or card details are collected.</div>
+                <div className="checkout-summary"><span>{count} {count === 1 ? "item" : "items"} · Free delivery</span><strong>£{subtotal.toFixed(2)}</strong></div>
+                <form className="checkout-form" onSubmit={placeOrder}>
+                  <label>Full name<input required autoComplete="name" value={customer.customer_name} onChange={(e) => setCustomer({ ...customer, customer_name: e.target.value })}/></label>
+                  <label>Email address<input required type="email" autoComplete="email" value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })}/></label>
+                  <label>Phone number <small>(optional)</small><input type="tel" autoComplete="tel" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}/></label>
+                  <label className="wide">Delivery address<input required autoComplete="street-address" value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })}/></label>
+                  <label>Town or city<input required autoComplete="address-level2" value={customer.city} onChange={(e) => setCustomer({ ...customer, city: e.target.value })}/></label>
+                  <label>Postcode<input required autoComplete="postal-code" value={customer.postcode} onChange={(e) => setCustomer({ ...customer, postcode: e.target.value })}/></label>
+                  <fieldset className="payment-methods wide">
+                    <legend>Demo payment method</legend>
+                    {["Card", "Apple Pay", "PayPal"].map((method) => (
+                      <label key={method} className={paymentMethod === method ? "selected" : ""}>
+                        <input type="radio" name="payment-method" value={method} checked={paymentMethod === method} onChange={() => setPaymentMethod(method)}/>
+                        <span>{method}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                  {checkoutError && <p className="checkout-error" role="alert">{checkoutError}</p>}
+                  <button className="checkout wide" disabled={submitting}>{submitting ? "Processing demo payment…" : `Pay £${subtotal.toFixed(2)} (demo)`}</button>
+                  <p className="payment-note wide">This simulates a successful online payment for demonstration purposes only.</p>
+                </form>
+              </>
+            )}
+          </section>
+        </>
+      )}
+    </main>
+  );
 }
