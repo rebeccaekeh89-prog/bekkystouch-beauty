@@ -28,6 +28,7 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -51,7 +52,37 @@ export default function Home() {
       })
       .catch(() => setCatalogueStatus("fallback"));
   }, []);
-  const filtered = products.filter((p) => (category === "All" || p.category === category) && p.name.toLowerCase().includes(search.toLowerCase()));
+
+  async function subscribeNewsletter(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  try {
+    const response = await fetch(
+      "https://ttdxwrzbvievwkiozpgl.supabase.co/rest/v1/newsletter_subscribers",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
+        },
+        body: JSON.stringify({
+          email: newsletterEmail,
+          status: "subscribed",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Newsletter signup failed");
+    }
+
+    setNotice("Welcome to the Bekkystouch inner circle!");
+    setNewsletterEmail("");
+  } catch {
+    setNotice("Sorry, we couldn't subscribe you. Please try again.");
+  }
+}  const filtered = products.filter((p) => (category === "All" || p.category === category) && p.name.toLowerCase().includes(search.toLowerCase()));
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
   const subtotal = useMemo(() => products.reduce((sum, p) => sum + p.price * (cart[p.id] || 0), 0), [cart]);
   function add(product: Product) { setCart((c) => ({ ...c, [product.id]: (c[product.id] || 0) + 1 })); setNotice(`${product.name} added to your bag`); setTimeout(() => setNotice(""), 2200); }
@@ -100,7 +131,7 @@ export default function Home() {
       {!filtered.length && <div className="empty">No products found. Try another search.</div>}
     </section>
     <section className="values" id="story"><div><span>◇</span><h3>Made for every shade</h3><p>Flexible formulas created to flatter a beautiful spectrum of skin tones.</p></div><div><span>♧</span><h3>Consciously crafted</h3><p>Vegan-friendly, cruelty-free essentials with considered packaging.</p></div><div><span>✦</span><h3>Beauty made simple</h3><p>Easy-to-use products that earn their place in your everyday routine.</p></div></section>
-    <section className="newsletter" id="newsletter"><div><p className="eyebrow">JOIN THE INNER CIRCLE</p><h2>A little beauty in your inbox</h2><p>Get 10% off your first order, plus product drops, tips and exclusive offers.</p></div><form onSubmit={(e) => {e.preventDefault(); setNotice("Welcome to the Bekkystouch inner circle!")}}><input type="email" required placeholder="Your email address" aria-label="Email address"/><button>Get 10% off</button></form></section>
+    <section className="newsletter" id="newsletter"><div><p className="eyebrow">JOIN THE INNER CIRCLE</p><h2>A little beauty in your inbox</h2><p>Get 10% off your first order, plus product drops, tips and exclusive offers.</p></div><form onSubmit={subscribeNewsletter}><input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="Your email address" aria-label="Email address"/><button>Get 10% off</button></form></section>
     <footer><a className="brand" href="#top">BEKKY<span>STOUCH</span></a><p>Beauty that feels like you.</p><div><a href="#shop">Shop</a><a href="#story">About</a><a href="#newsletter">Contact</a></div><small>© 2026 Bekkystouch. All rights reserved.</small></footer>
     {notice && <div className="toast" role="status">✓ {notice}</div>}
     {cartOpen && <><div className="backdrop" onClick={() => setCartOpen(false)} /><aside className="cart" aria-label="Shopping bag"><div className="cart-head"><div><p className="eyebrow">YOUR SELECTION</p><h2>Shopping bag ({count})</h2></div><button onClick={() => setCartOpen(false)} aria-label="Close bag">×</button></div>{count === 0 ? <div className="cart-empty"><span>◇</span><h3>Your bag is waiting</h3><p>Discover something beautiful to add.</p><button className="primary" onClick={() => setCartOpen(false)}>Start shopping</button></div> : <><div className="delivery"><p>Free UK delivery included</p><div><i style={{width: "100%"}} /></div></div><div className="cart-items">{products.filter(p => cart[p.id]).map(p => <div className="cart-item" key={p.id}><img src={p.image} alt=""/><div><h3>{p.name}</h3><p>{p.shade}</p><div className="qty"><button onClick={() => update(p.id,-1)}>−</button><span>{cart[p.id]}</span><button onClick={() => update(p.id,1)}>＋</button></div></div><strong>£{(p.price*cart[p.id]).toFixed(2)}</strong></div>)}</div><div className="cart-total"><div><span>Total</span><strong>£{subtotal.toFixed(2)}</strong></div><p>Free UK delivery</p><button className="checkout" onClick={() => {setCartOpen(false);setCheckoutOpen(true)}}>Continue to demo checkout <span>→</span></button><small>Your demonstration order is stored in Supabase.</small></div></>}</aside></>}
