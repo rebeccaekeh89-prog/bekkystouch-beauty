@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase Client using public environment variables
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
 
 interface Product {
   id: number;
@@ -112,7 +119,7 @@ export default function Home() {
 
   const triggerNotice = (msg: string) => {
     setNotice(msg);
-    setTimeout(() => setNotice(null), 3000);
+    setTimeout(() => setNotice(null), 4000);
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -176,15 +183,49 @@ export default function Home() {
     }
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  // REAL SUPABASE AUTHENTICATION SUBMIT
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUser({ email: authEmail, name: authName || 'Valued Customer' });
-    triggerNotice(
-      authMode === 'login'
-        ? 'Signed in successfully!'
-        : 'Account created successfully!'
-    );
-    setAuthOpen(false);
+
+    if (authMode === 'signup') {
+      const nameParts = authName.trim().split(' ');
+      const firstName = nameParts[0] || authName;
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const { data, error } = await supabase.auth.signUp({
+        email: authEmail,
+        password: authPassword,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+      });
+
+      if (error) {
+        triggerNotice(`Sign Up Error: ${error.message}`);
+        return;
+      }
+
+      triggerNotice('Account created! Check profiles table in Supabase.');
+      setUser({ email: authEmail, name: firstName });
+      setAuthOpen(false);
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: authPassword,
+      });
+
+      if (error) {
+        triggerNotice(`Sign In Error: ${error.message}`);
+        return;
+      }
+
+      triggerNotice('Signed in successfully!');
+      setUser({ email: authEmail, name: data.user?.email });
+      setAuthOpen(false);
+    }
   };
 
   return (
