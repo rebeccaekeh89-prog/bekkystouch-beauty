@@ -32,6 +32,8 @@ export default function Home() {
   const [notice, setNotice] = useState("");
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
@@ -127,7 +129,11 @@ export default function Home() {
       <div className="announcement">Complimentary UK delivery on every order</div>
       <header>
         <a className="brand" href="#top" aria-label="Bekkystouch home">BEKKY<span>STOUCH</span></a>
-        <nav aria-label="Main navigation"><a href="#shop">Shop</a><a href="#story">Our story</a><a href="#newsletter">Beauty notes</a></nav>
+        <nav aria-label="Main navigation">
+          <a href="#shop">Shop</a>
+          <button onClick={() => setAboutOpen(true)} className="nav-btn">Our story</button>
+          <button onClick={() => setContactOpen(true)} className="nav-btn">Contact</button>
+        </nav>
         <div className="header-actions">
           <button className="icon-btn" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">⌕</button>
           <button className="bag-btn" onClick={() => setCartOpen(true)} aria-label={`Shopping bag with ${count} items`}>Bag <span>{count}</span></button>
@@ -208,7 +214,11 @@ export default function Home() {
       <footer>
         <a className="brand" href="#top">BEKKY<span>STOUCH</span></a>
         <p>Beauty that feels like you.</p>
-        <div><a href="#shop">Shop</a><a href="#story">About</a><a href="#newsletter">Contact</a></div>
+        <div>
+          <a href="#shop">Shop</a>
+          <button onClick={() => setAboutOpen(true)} className="nav-btn">About</button>
+          <button onClick={() => setContactOpen(true)} className="nav-btn">Contact</button>
+        </div>
         <small>© 2026 Bekkystouch. All rights reserved.</small>
       </footer>
 
@@ -299,6 +309,50 @@ export default function Home() {
                 </form>
               </>
             )}
+          </section>
+        </>
+      )}
+
+      {/* About Us Modal */}
+      {aboutOpen && (
+        <>
+          <div className="backdrop" onClick={() => setAboutOpen(false)} />
+          <section className="checkout-modal" role="dialog" aria-modal="true">
+            <button className="modal-close" onClick={() => setAboutOpen(false)} aria-label="Close about us">×</button>
+            <p className="eyebrow">OUR STORY</p>
+            <h2>About Bekky’s Touch</h2>
+            <p style={{ marginTop: "1rem", lineHeight: "1.6" }}>
+              Bekky’s Touch was created to celebrate individuality and true beauty. We craft high-performance, inclusive makeup essentials designed to compliment every skin tone effortlessly.
+            </p>
+            <p style={{ marginTop: "1rem", lineHeight: "1.6" }}>
+              Our products are 100% vegan-friendly, cruelty-free, and carefully formatted to ensure seamless application for your everyday makeup routine.
+            </p>
+            <button className="checkout wide" style={{ marginTop: "2rem" }} onClick={() => setAboutOpen(false)}>
+              Close
+            </button>
+          </section>
+        </>
+      )}
+
+      {/* Contact Us Modal */}
+      {contactOpen && (
+        <>
+          <div className="backdrop" onClick={() => setContactOpen(false)} />
+          <section className="checkout-modal" role="dialog" aria-modal="true">
+            <button className="modal-close" onClick={() => setContactOpen(false)} aria-label="Close contact us">×</button>
+            <p className="eyebrow">GET IN TOUCH</p>
+            <h2>Contact Us</h2>
+            <p style={{ marginTop: "1rem", lineHeight: "1.6" }}>
+              Have questions about your order or need product recommendations? We are here to help!
+            </p>
+            <div style={{ marginTop: "1.5rem", background: "#f9f6f0", padding: "1.25rem", borderRadius: "8px" }}>
+              <p style={{ margin: "0 0 0.5rem 0" }}><strong>Email Support:</strong> support@bekkystouch.com</p>
+              <p style={{ margin: "0 0 0.5rem 0" }}><strong>Hours:</strong> Mon – Fri, 9am – 5pm GMT</p>
+              <p style={{ margin: 0 }}><strong>Response Time:</strong> Within 24 hours</p>
+            </div>
+            <button className="checkout wide" style={{ marginTop: "2rem" }} onClick={() => setContactOpen(false)}>
+              Close
+            </button>
           </section>
         </>
       )}
