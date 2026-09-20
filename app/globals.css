@@ -11,11 +11,14 @@
 .nav-btn {
   background: none;
   border: none;
-  color: inherit;
-  font: inherit;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
   cursor: pointer;
   padding: 0;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-btn:hover {
