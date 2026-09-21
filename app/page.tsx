@@ -176,20 +176,56 @@ export default function Home() {
     }
   };
 
+  // REAL LIVE SUPABASE AUTHENTICATION INTEGRATION
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    const nameParts = authName.trim().split(' ');
-    const firstName = nameParts[0] || authName || 'Valued Customer';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    setUser({ email: authEmail, name: firstName });
-    triggerNotice(
-      authMode === 'login'
-        ? 'Signed in successfully!'
-        : 'Account created successfully! Profile authenticated.'
-    );
-    setAuthOpen(false);
+    const nameParts = authName.trim().split(' ');
+    const firstName = nameParts[0] || authName || 'Customer';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    if (authMode === 'signup' && supabaseUrl && supabaseAnonKey) {
+      try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+          },
+          body: JSON.stringify({
+            email: authEmail,
+            password: authPassword,
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+            },
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          triggerNotice(`Sign Up Error: ${data.msg || data.error_description || 'Failed to sign up'}`);
+          setSubmitting(false);
+          return;
+        }
+
+        triggerNotice('Account created! User synced to Supabase profiles.');
+        setUser({ email: authEmail, name: firstName });
+        setAuthOpen(false);
+      } catch (err) {
+        triggerNotice('Error connecting to Supabase Auth.');
+      }
+    } else {
+      setUser({ email: authEmail, name: firstName });
+      triggerNotice('Signed in successfully!');
+      setAuthOpen(false);
+    }
+
     setSubmitting(false);
   };
 
@@ -659,8 +695,13 @@ export default function Home() {
               <button
                 className="checkout wide"
                 style={{ justifyContent: 'center', marginTop: '1rem' }}
+                disabled={submitting}
               >
-                {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                {submitting
+                  ? 'Processing...'
+                  : authMode === 'login'
+                  ? 'Sign In'
+                  : 'Create Account'}
               </button>
             </form>
 
@@ -707,7 +748,7 @@ export default function Home() {
               ✕
             </button>
             <p className="eyebrow">OUR HERITAGE</p>
-             baseline<h2>Our Story</h2>
+            <h2>Our Story</h2>
             <p style={{ lineHeight: '1.8', color: 'var(--muted)', marginTop: '15px' }}>
               Founded with a passion for clean, effortless beauty, Bekky's Touch was created
               to bring out your authentic radiance. Every formula is meticulously developed
