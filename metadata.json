@@ -1,0 +1,6 @@
+{
+  "name": "Bekky's Touch Beauty",
+  "description": "Luxury beauty store featuring elevated makeup essentials, inclusive complexion shades, lip formulas, and everyday beauty staples.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

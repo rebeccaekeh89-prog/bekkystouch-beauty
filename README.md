@@ -1,33 +1,20 @@
-# Bekky's Touch - Full-Stack E-Commerce Application
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-An elevated, high-performance beauty e-commerce platform built with Next.js (App Router), Supabase (PostgreSQL, Auth, Storage), and hosted on Vercel.
+# Run and deploy your AI Studio app
 
-## 🚀 Live Demo
-- **URL:** [https://bekkystouch-beauty.vercel.app](https://bekkystouch-beauty.vercel.app)
+This contains everything you need to run your app locally.
 
----
+View your app in AI Studio: https://ai.studio/apps/79525cbb-7553-46aa-82dd-65d5f007f257
 
-## 🛠 Tech Stack & Architecture
-- **Frontend Framework:** Next.js (App Router, Client Components, React)
-- **Database & Backend:** Supabase (PostgreSQL Relational Schema, RLS, Automated Triggers)
-- **Authentication:** Supabase Auth (Email/Password, Metadata Sync)
-- **Asset Storage:** Supabase Public Storage Bucket (`product-images`)
-- **Hosting & Deployment:** Vercel Continuous Deployment via GitHub
+## Run Locally
 
----
+**Prerequisites:**  Node.js
 
-## 🗄 Database Features & Relational Schema
-- **User Management & Triggers:** Automated `on_auth_user_created` trigger synchronizes `auth.users` to `public.profiles`.
-- **Product & Inventory Management:** Structured schema covering products (`bt_products`), product variants (`product_variants`), subcategories (`categories`), media (`product_images`), inventory (`inventory`), and stock movements (`stock_movements`).
-- **Shopping & Checkout:** Active cart tables (`carts`, `cart_items`), orders (`bt_orders`), order items (`bt_order_items`), payments (`payments`), and payment audit logs (`payment_events`).
-- **User Features:** Address book (`customer_addresses`), wishlist items (`wishlists`), customer reviews (`reviews`), dynamic discounts (`coupons`), notifications (`notifications`), and audit logs (`audit_logs`).
-- **Security & Integrity:** Row Level Security (RLS) active on all sensitive user tables and public entity read policies.
 
----
-
-## 💻 Local Development Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/rebeccaakeh89-prog/bekkystouch-beauty.git](https://github.com/rebeccaakeh89-prog/bekkystouch-beauty.git)
-   cd bekkystouch-beauty
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
